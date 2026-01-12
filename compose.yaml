@@ -13,8 +13,8 @@ services:
       - GITEA__server__ROOT_URL=https://${GITEA_DOMAIN:-gitea.local}/
       - GITEA__server__SSH_DOMAIN=${GITEA_DOMAIN:-gitea.local}
     volumes:
-      - ./state/data:/var/lib/gitea
-      - ./state/config:/etc/gitea
+      - ./data/data:/var/lib/gitea
+      - ./data/config:/etc/gitea
       - /etc/timezone:/etc/timezone:ro
       - /etc/localtime:/etc/localtime:ro
     ports:
@@ -32,7 +32,7 @@ services:
       - POSTGRES_PASSWORD=${GITEA_DB_PASSWORD}
       - POSTGRES_DB=gitea
     volumes:
-      - ./state/db:/var/lib/postgresql/data
+      - ./data/db:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "gitea"]
       interval: 10s
