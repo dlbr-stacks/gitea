@@ -1,0 +1,41 @@
+name: gitea
+
+services:
+  server:
+    image: gitea/gitea:1.22-rootless
+    environment:
+      - GITEA__database__DB_TYPE=postgres
+      - GITEA__database__HOST=db:5432
+      - GITEA__database__NAME=gitea
+      - GITEA__database__USER=gitea
+      - GITEA__database__PASSWD=${GITEA_DB_PASSWORD}
+      - GITEA__server__DOMAIN=${GITEA_DOMAIN:-gitea.local}
+      - GITEA__server__ROOT_URL=https://${GITEA_DOMAIN:-gitea.local}/
+      - GITEA__server__SSH_DOMAIN=${GITEA_DOMAIN:-gitea.local}
+    volumes:
+      - ./state/data:/var/lib/gitea
+      - ./state/config:/etc/gitea
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
+    ports:
+      - "3000:3000"
+      - "2222:2222"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_USER=gitea
+      - POSTGRES_PASSWORD=${GITEA_DB_PASSWORD}
+      - POSTGRES_DB=gitea
+    volumes:
+      - ./state/db:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "gitea"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped

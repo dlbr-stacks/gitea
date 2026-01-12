@@ -1,0 +1,69 @@
+metadata:
+  name: gitea
+  description: Lightweight self-hosted Git service
+services:
+  - name: server
+    description: Gitea server
+    env:
+      - GITEA__database__DB_TYPE
+      - GITEA__database__HOST
+      - GITEA__database__NAME
+      - GITEA__database__USER
+      - GITEA__database__PASSWD
+  - name: db
+    description: PostgreSQL database
+    env:
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+      - POSTGRES_DB
+routes:
+  - id: web
+    kind: http
+    exposure: public
+    target:
+      service: server
+      port: 3000
+    hosts:
+      - name: gitea
+    path:
+      match: prefix
+      value: /
+state:
+  - path: data
+    description: Gitea data directory
+  - path: db
+    description: PostgreSQL data
+bootstrap:
+  version: 1
+  auto: true
+  runner:
+    kind: docker
+    image: alpine:3.20
+    workdir: /work
+    command: ["sh", "-lc", "./bootstrap/bootstrap.sh"]
+  inputs:
+    - name: GITEA_DB_PASSWORD
+      prompt: "Gitea database password"
+      secret: true
+      generate:
+        type: password
+        length: 32
+    - name: GITEA_ADMIN_PASSWORD
+      prompt: "Gitea admin password"
+      secret: true
+      generate:
+        type: password
+        length: 24
+    - name: GITEA_ADMIN_USER
+      prompt: "Gitea admin username"
+      secret: false
+      default: "admin"
+    - name: GITEA_ADMIN_EMAIL
+      prompt: "Gitea admin email"
+      secret: false
+      default: "admin@local"
+  restore:
+    supported: true
+    methods: ["extract_tar_zst", "copy_dir"]
+  marker:
+    path: ".dlbr/bootstrap.json"
