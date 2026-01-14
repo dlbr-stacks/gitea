@@ -1,4 +1,4 @@
-# dlbr-gitea
+# Gitea
 
 A dlbr stack package for [Gitea](https://gitea.io/) - a lightweight self-hosted Git service.
 
